@@ -1,0 +1,1 @@
+# pos-disciplina-08-arquitetura-de-sistemas-com-ia
