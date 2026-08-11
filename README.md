@@ -1,1 +1,7 @@
-# pos-disciplina-08-arquitetura-de-sistemas-com-ia
+# Pós Disciplina 08 - Arquitetura de Sistemas com IA
+
+## Introdução
+Pendente...
+
+## Módulos
+Pendente...
