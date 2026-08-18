@@ -65,3 +65,37 @@ cd module-02
 node agent-components-demo.js
 node react-agent-prototype.js
 ```
+
+### Módulo 03: Arquiteturas Multi-Agent
+
+#### **Projeto:** [Vitalis Pharma - Trial Forge](module-03)
+
+**Tecnologias utilizadas:**
+- **LLM (Large Language Model)** - Motor com raciocínio estruturado
+- **A2A (Agent-to-Agent Protocol)** - Protocolo para comunicação entre agentes autônomos
+- **Teorema CAP** - Princípio de sistemas distribuídos para decisão entre consistência e disponibilidade
+- **Padrão Saga** - Mecanismo de ações compensatórias para falhas tardias
+
+**Conceitos abordados:**
+- **Limite do Agente Único:** Um agente generalista que acumula múltiplos domínios (ICF, protocolo, CSR) torna-se difícil de auditar, evoluir e depurar. A divisão em especialistas é necessária quando tarefas exigem vocabulários, ferramentas ou níveis de risco distintos.
+- **Agente vs. Ferramenta:** Ferramenta executa função determinística com esquema fixo. Agente interpreta contexto, toma decisões, utiliza ferramentas e pode reconhecer quando uma tarefa está fora de seu domínio. Comunicação entre agentes exige protocolos específicos (A2A) porque ambos os lados possuem autonomia.
+- **Seis Padrões de Orquestração:**
+  - **Sequential:** Agentes executam em sequência, cada um dependendo da saída do anterior. Adequado quando existe dependência lógica entre atividades.
+  - **Parallel:** Agentes executam simultaneamente. Reduz latência quando atividades são independentes. Exige consolidação posterior dos resultados.
+  - **Supervisor:** Agente central coordena especialistas, distribui tarefas e consolida resultados. Não substitui os especialistas - apenas coordena.
+  - **Hierarchical:** Evolução do Supervisor com múltiplos níveis de coordenação (árvore). Orquestrador principal encaminha para supervisores de domínio, que gerenciam seus próprios especialistas. Isola responsabilidades e facilita expansão.
+  - **Group Chat:** Agentes compartilham mesma conversa, debatem e chegam a decisões por consenso. Moderador apenas organiza a ordem das interações. Útil quando diferentes perspectivas precisam ser reconciliadas.
+  - **Handoff:** Agente transfere completamente a responsabilidade para outro especialista quando identifica que a tarefa ultrapassa seu domínio. O novo agente continua do ponto onde o processo foi interrompido.
+- **Teorema CAP em Agentes:** Diante de falha de comunicação, o sistema precisa escolher entre consistência (aguardar até ter certeza da informação correta) e disponibilidade (continuar respondendo com informações parciais). Diferentes componentes podem fazer escolhas distintas conforme o risco associado.
+- **Mecanismos de Tolerância a Falhas:** Timeout explícito (nenhuma espera indefinida), Retry com limite máximo (tentativas controladas), Idempotência (repetição não produz efeitos duplicados).
+- **Padrão Saga:** Quando uma falha tardia invalida parte do trabalho, não é necessário reiniciar todo o processo. Executam-se ações compensatórias apenas nas etapas afetadas, na ordem inversa da execução original. Cada etapa possui sua própria estratégia de desfazer.
+- **Controle Otimista de Versão:** Cada agente informa qual versão do documento utilizou. Ao tentar gravar, o sistema verifica se aquela versão continua sendo a mais recente. Caso outro agente já tenha atualizado, a gravação é rejeitada e o conflito deve ser resolvido explicitamente.
+
+**Aplicação prática:**
+No Trial Forge, três agentes especialistas são criados: Agente ICF (linguagem acessível ao participante, seções condicionais), Agente de Protocolo (metodologia técnica, critérios de inclusão/exclusão) e Agente CSR (síntese estatística, conformidade ICH E3). O Supervisor coordena a execução: primeiro o protocolo é gerado (Sequential), depois ICF e CSR trabalham em paralelo (Parallel), e ao final o supervisor consolida os resultados. O padrão Hierarchical é aplicado com um orquestrador principal que encaminha solicitações para supervisores de domínio (protocolos, consentimento, relatórios). O Handoff é utilizado quando o agente ICF identifica um tema de bioética complexo e transfere a responsabilidade para um agente especializado em bioética. O Teorema CAP é aplicado: se o agente CSR deixar de responder, o supervisor pode optar por consistência (aguardar) ou disponibilidade (prosseguir com lacuna registrada). O padrão Saga é utilizado quando uma inconsistência regulatória é descoberta tardiamente - apenas os agentes afetados executam compensações, preservando o trabalho válido já realizado.
+
+**Comandos executados:**
+```bash
+cd module-03
+node trialforge-message-queue-prototype.js
+```
