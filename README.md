@@ -99,3 +99,43 @@ No Trial Forge, três agentes especialistas são criados: Agente ICF (linguagem 
 cd module-03
 node trialforge-message-queue-prototype.js
 ```
+
+### Módulo 04: Padrões de Design AI-Específicos
+
+#### **Projeto:** [Vitalis Pharma - Trial Forge](module-04)
+
+**Tecnologias utilizadas:**
+- **LLM (Large Language Model)** - Motor com raciocínio estruturado
+- **RAG (Retrieval Augmented Generation)** - Recuperação de contexto antes da geração
+- **Embeddings** - Representação vetorial para busca semântica
+- **BM25** - Algoritmo de busca lexical para correspondência exata de termos
+- **Semantic Cache** - Cache baseado em similaridade semântica de perguntas
+- **Prompt Cache** - Reutilização de contexto processado anteriormente
+- **Response Streaming** - Exibição gradual de respostas para reduzir percepção de espera
+
+**Conceitos abordados:**
+- **Padrões de RAG:**
+  - **Basic RAG:** Quatro etapas - fragmentação (chunking) dos documentos, geração de embeddings, armazenamento vetorial, recuperação dos fragmentos semanticamente mais próximos e envio ao modelo. Separação entre recuperação e geração.
+  - **Hybrid Search:** Combinação de busca vetorial (similaridade semântica) com busca lexical (BM25 para correspondência exata de palavras, códigos, números de resolução). Amplia precisão e cobertura.
+  - **Multi-Index:** Múltiplos índices documentais organizados por domínio (ex: um índice para Anvisa, outro para FDA, outro para referências científicas). Cada consulta identifica qual índice é mais relevante.
+  - **Agentic RAG:** Quando a qualidade da recuperação fica abaixo do esperado, o agente executa automaticamente novas consultas com abordagens diferentes, ampliando a estratégia de busca até encontrar contexto suficiente (limite de tentativas).
+- **Roteamento:**
+  - **Intent-Based Routing:** Identifica a intenção da requisição antes de qualquer inferência (gerar protocolo, ICF, CSR, consulta regulatória). Decide para qual fluxo a solicitação deve seguir. Acontece antes do Model Router.
+  - **Model Router:** Decide qual modelo utilizar para cada tarefa, equilibrando custo, latência e qualidade. Tarefas simples vão para modelos menores e mais baratos; tarefas complexas para modelos mais sofisticados. Decisão baseada em classificação prévia da complexidade.
+- **Otimização:**
+  - **Semantic Cache:** Perguntas semanticamente equivalentes reutilizam respostas armazenadas. A pergunta é transformada em embedding e comparada com perguntas anteriores. Similaridade acima do limiar → resposta do cache (nenhuma chamada ao modelo). Reduz custo e latência.
+  - **Prompt Cache:** Reutiliza contexto processado anteriormente (documentos longos, System Prompts, definições de ferramentas). A chamada ao modelo continua, mas o reprocessamento do contexto repetido é eliminado. Complementar ao Semantic Cache.
+  - **Response Streaming:** Não reduz tempo real de geração, mas reduz percepção de espera ao exibir os primeiros resultados gradualmente. Útil para respostas longas (documentos, relatórios).
+- **Approval Gate e Controle de Confiança:**
+  - **Approval Gate:** Componente que interrompe o fluxo para validação humana. Pode ser síncrono (aguarda aprovação antes de prosseguir, para ações irreversíveis) ou assíncrono (prossegue e revisa depois, para ações reversíveis).
+  - **Confidence Threshold:** Limiar que converte confiança probabilística em decisão arquitetural. Acima do limiar → prossegue automaticamente. Abaixo do limiar → encaminha para validação humana. Deve ser recalibrado continuamente.
+  - **Audit Trail:** Registro permanente de todas as decisões: agente/pessoa responsável, data/hora, versão do prompt, versão do modelo, limiar de confiança, resultado final. Registros imutáveis (correções criam novos eventos, não apagam os anteriores).
+
+**Aplicação prática:**
+No Trial Forge, o fluxo integrado de padrões é executado sequencialmente: (1) Intent-Based Routing identifica se a solicitação é uma consulta rotineira ou geração de CSR; (2) Semantic Cache verifica se a pergunta já foi respondida anteriormente (se sim, resposta imediata); (3) Model Router seleciona modelo pequeno para consultas simples ou modelo avançado para CSR; (4) RAG recupera contexto com Multi-Index (Anvisa/FDA), Hybrid Search (vetorial + BM25), e Agentic RAG com até 3 tentativas se a recuperação for insuficiente; (5) Response Streaming exibe a resposta gradualmente; (6) Confidence Threshold avalia a confiança da resposta; (7) Approval Gate (síncrono) é acionado obrigatoriamente para o CSR, independentemente da confiança, devido ao alto risco regulatório; (8) Audit Trail registra permanentemente toda a execução. O Semantic Cache é utilizado para perguntas rotineiras sobre protocolos, mas nunca para CSR (risco de desatualização). O Prompt Cache é utilizado para reutilizar o contexto do protocolo clínico em diferentes consultas.
+
+**Comandos executados:**
+```bash
+cd module-04
+node trialforge-gateway-prototype.js
+```
