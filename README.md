@@ -139,3 +139,52 @@ No Trial Forge, o fluxo integrado de padrões é executado sequencialmente: (1) 
 cd module-04
 node trialforge-gateway-prototype.js
 ```
+
+### Módulo 05: Arquitetura Enterprise
+
+#### **Projeto:** [Vitalis Pharma - Trial Forge Platform](module-05)
+
+**Tecnologias utilizadas:**
+- **LLM (Large Language Model)** - Motor com raciocínio estruturado
+- **Kubernetes** - Orquestração de contêineres para cargas permanentes
+- **Serverless** - Modelo de execução sob demanda para cargas esporádicas
+- **Edge Computing** - Processamento próximo ao usuário para baixa latência e privacidade
+- **KServe** - Plataforma para inferência de modelos em Kubernetes
+- **OpenTelemetry** - Instrumentação para observabilidade distribuída
+- **Open Policy Agent** - Controle de políticas centralizado
+
+**Conceitos abordados:**
+- **Arquitetura Enterprise:** A plataforma deixa de atender um único estudo e passa a ser compartilhada por dezenas de equipes, países e projetos simultaneamente. O maior desafio não é a execução individual, mas o compartilhamento eficiente da infraestrutura.
+- **Quatro Componentes do Stack:**
+  - **API Gateway:** Ponto único de entrada para todos os estudos. Centraliza autenticação, controle de acesso, limitação de taxa, observabilidade e gerenciamento de modelos.
+  - **Orquestração (Kubernetes):** Administra quantas instâncias de cada serviço permanecem ativas, ampliando ou reduzindo conforme a demanda. A plataforma adapta sua capacidade ao comportamento real da carga.
+  - **Serviços Compartilhados:** Embeddings, modelos de linguagem, cache e recuperação de contexto existem uma única vez e são reutilizados por todos os estudos. Evita reimplementação dos mesmos serviços por diferentes equipes.
+  - **Observabilidade Unificada:** Logs, métricas, trilhas de auditoria e eventos compõem uma visão única da plataforma. Cada execução continua identificada individualmente, mas toda a infraestrutura de registro é compartilhada.
+- **Três Princípios da Arquitetura Enterprise:**
+  - **Loose Coupling:** Reduz dependências entre diferentes partes. Cada estudo evolui seus componentes sem impactar os demais.
+  - **Clear Interfaces:** Cada serviço compartilhado expõe contratos explícitos. Consumidores dependem apenas das interfaces, não dos detalhes internos.
+  - **Policy-Driven Control:** Regras de autorização, limites de custo e utilização são controladas por políticas centralizadas (ex: Open Policy Agent), avaliadas dinamicamente durante a execução.
+- **Observabilidade para IA:**
+  - **Prompt como Código:** Prompts são versionados como código-fonte. Cada alteração é uma nova versão com histórico preservado. Diff compara versões; Replay reproduz execuções antigas com diferentes versões.
+  - **Metadados de IA:** Registro de tokens de entrada/saída, modelo utilizado, tempo até primeiro token, tempo total, documentos recuperados no RAG.
+  - **Deriva de Qualidade:** A qualidade do modelo pode degradar silenciosamente mesmo com infraestrutura saudável. É necessário monitorar prompts, versões, documentos recuperados e qualidade das respostas separadamente da infraestrutura.
+- **Modelos de Implantação:**
+  - **Kubernetes:** Mantém serviços permanentemente disponíveis. Ideal para cargas constantes e previsíveis. Custo contínuo mesmo sem utilização.
+  - **Serverless:** Ambiente criado apenas quando uma requisição chega. Cobrança baseada no trabalho efetivamente realizado. Ideal para cargas esporádicas ou com grandes variações. Desafio: cold start (carregamento do modelo, inicialização da GPU).
+  - **Edge Computing:** Processamento próximo ao usuário ou no dispositivo. Reduz latência (distância física) e preserva privacidade (dados sensíveis não saem do dispositivo). Não elimina necessidade de auditoria centralizada.
+- **Controle Inteligente de Custos:**
+  - **Model Cascading:** O modelo mais barato tenta responder primeiro. Se a confiança da resposta for insuficiente, escala para o próximo nível (mais caro, mais sofisticado). A decisão de escalar ocorre depois da execução, não antes (diferente do Model Router).
+  - **Controle por Tenant:** Cada estudo possui seu próprio orçamento. A verificação acontece antes de qualquer processamento (no Gateway), interrompendo requisições que excederiam o limite.
+  - **Dois Sinais de Confiança:** Qualidade da recuperação (RAG) + confiança da resposta do modelo. Ambos são usados para decidir quando escalar na cascata.
+- **Evaluation Gate:** Antes de promover um novo modelo, ele é executado contra um Golden Set (conjunto conhecido de perguntas e respostas). A nova versão só é promovida se mantiver desempenho compatível com a tolerância definida. Protege contra regressões de qualidade e configurações incorretas.
+
+**Aplicação prática:**
+No Trial Forge em escala enterprise, o API Gateway centraliza autenticação e roteamento para todos os estudos clínicos da Vitalis Pharma. O Kubernetes mantém os serviços centrais (orquestração, autenticação, componentes compartilhados) continuamente disponíveis. Processamentos ocasionais (tarefas de apoio sob demanda) são executados em Serverless para reduzir custos. Funcionalidades com dados sensíveis podem utilizar Edge Computing para preservar privacidade. A observabilidade unificada registra prompts versionados (cada alteração é rastreada via Diff e Replay), metadados de IA (tokens, modelo, tempo, documentos RAG) e monitora deriva de qualidade separadamente da infraestrutura. O Model Cascading é aplicado: consultas rotineiras começam pelo modelo mais barato; se a confiança for insuficiente, escalam para modelos mais sofisticados (exceto CSR, que vai direto ao modelo mais avançado por risco regulatório). Cada estudo possui seu próprio orçamento, verificado no Gateway antes de qualquer processamento. O Evaluation Gate bloqueia automaticamente a promoção de novos modelos ou configurações que causem regressão de qualidade no Golden Set.
+
+**Comandos executados:**
+```bash
+cd module-05
+node model-eval-gate-prototype.js
+node manipulation-guardrail-prototype.js
+node trialforge-model-tiering-prototype.js
+```
