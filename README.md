@@ -1,7 +1,9 @@
 # Pós Disciplina 08 - Arquitetura de Sistemas com IA
 
 ## Introdução
-Pendente...
+Este repositório contém todos os projetos desenvolvidos durante a disciplina **Arquitetura de Sistemas com IA**, abordando desde os fundamentos que diferenciam sistemas tradicionais de sistemas orientados por Inteligência Artificial até a construção de uma plataforma enterprise capaz de coordenar agentes, compartilhar infraestrutura, controlar custos, observar decisões e operar em escala.
+
+Cada módulo foi desenvolvido para demonstrar na prática como arquiteturas AI-First exigem uma abordagem diferente do desenvolvimento de software tradicional, onde o modelo de linguagem é apenas um componente dentro de um sistema muito maior, composto por gateway, orquestração, mecanismos de recuperação de contexto, aprovação humana, observabilidade, trilha de auditoria, controle de custo e estratégias de degradação. O repositório explora desde a decisão de quando utilizar IA versus lógica determinística, passando pela anatomia de agentes single-agent com padrões ReAct e Reflection, evoluindo para arquiteturas multi-agent com diferentes padrões de orquestração (Sequential, Parallel, Supervisor, Hierarchical, Group Chat, Handoff), até padrões específicos de design como RAG (Basic, Hybrid Search, Multi-Index, Agentic), roteamento de intenção e modelos, caches semântico e de prompt, Approval Gates com limiares de confiança e trilhas de auditoria, culminando em uma arquitetura enterprise com Kubernetes, Serverless, Edge Computing, observabilidade unificada, prompt como código e controle inteligente de custos com Model Cascading, utilizando o caso da Vitalis Pharma e sua plataforma Trial Forge como fio condutor ao longo de toda a disciplina.
 
 ## Módulos
 
